@@ -46,7 +46,7 @@ def new_page():
 @app.route('/download/<upload_id>')
 def download(upload_id):
     upload = Upload.query.filter_by(id=upload_id).first()
-    return send_file(BytesIO(upload.data), attachment_filename=upload.filename, as_attachment=True)
+    return send_file(BytesIO(upload.data), download_name=upload.filename, as_attachment=True)
 
 if __name__ == '__main__':
     # Create the database tables
