@@ -1,4 +1,6 @@
-from flask import Flask, render_template, redirect, url_for, request
+from io import BytesIO # Allows us to take the binary from the db and convert to format that flask can use to regen data
+
+from flask import Flask, render_template, redirect, url_for, request, send_file
 from PDF_functions import *
 from flask_sqlalchemy import SQLAlchemy
 '''
@@ -40,6 +42,11 @@ def new_page():
         return f'Uploaded {file.filename}'
     
     return render_template('upload.html')
+
+@app.route('/download/<upload_id>')
+def download(upload_id):
+    upload = Upload.query.filter_by(id=upload_id).first()
+    return send_file(BytesIO(upload.data), attachment_filename=upload.filename, as_attachment=True)
 
 if __name__ == '__main__':
     # Create the database tables
