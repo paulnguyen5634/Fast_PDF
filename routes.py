@@ -31,10 +31,18 @@ def home():
 def new_page():
     if request.method == 'POST':
         file = request.files['file']
-        print(file.filename)
+        
+        # Uploading the data onto the database
+        upload = Upload(filename=file.filename, data = file.read())
+        db.session.add(upload)
+        db.session.commit()
+
         return f'Uploaded {file.filename}'
     
     return render_template('upload.html')
 
 if __name__ == '__main__':
+    # Create the database tables
+    with app.app_context():
+        db.create_all()
     app.run(debug=True)
