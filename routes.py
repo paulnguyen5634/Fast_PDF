@@ -12,10 +12,14 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
 # Columns: id, filename, data
+'''
+Current Implementation: Storing the data diretly to the db, may not perform so well
+Future implementation: Store this on a file system or S3, and store metadata on the db
+'''
 class Upload(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     filename = db.Column(db.String(50))
-    data = db.Column(db.LargeBinary)
+    data = db.Column(db.LargeBinary) # Store arbitrary binary
 
 
 @app.route("/", methods=['GET', 'POST'])
@@ -25,6 +29,11 @@ def home():
 
 @app.route('/upload', methods=['GET', 'POST'])
 def new_page():
+    if request.method == 'POST':
+        file = request.files['file']
+        print(file.filename)
+        return f'Uploaded {file.filename}'
+    
     return render_template('upload.html')
 
 if __name__ == '__main__':
