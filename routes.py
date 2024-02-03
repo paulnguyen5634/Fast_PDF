@@ -55,7 +55,7 @@ def merge():
 
         return f'Uploaded {file.filename}'
     
-    return render_template('upload.html')
+    return render_template('merge_pdf.html')
 
 # TODO: Make a redirect to a new page for downloading data -> Save altered pdf_id into the session as to redirect to download
 @app.route('/download/<upload_id>')
