@@ -43,7 +43,21 @@ def new_page():
     
     return render_template('upload.html')
 
-# TODO: Make a redirect to a new page for downloading data
+@app.route('/merge', methods=['GET', 'POST'])
+def merge():
+    if request.method == 'POST':
+        file = request.files['file']
+        
+        # Uploading the data onto the database
+        upload = Upload(filename=file.filename, data = file.read())
+        db.session.add(upload)
+        db.session.commit()
+
+        return f'Uploaded {file.filename}'
+    
+    return render_template('upload.html')
+
+# TODO: Make a redirect to a new page for downloading data -> Save altered pdf_id into the session as to redirect to download
 @app.route('/download/<upload_id>')
 def download(upload_id):
     upload = Upload.query.filter_by(id=upload_id).first()
