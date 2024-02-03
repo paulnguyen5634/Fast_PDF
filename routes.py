@@ -2,6 +2,7 @@ from io import BytesIO # Allows us to take the binary from the db and convert to
 
 from flask import Flask, render_template, redirect, url_for, request, send_file
 from PDF_functions import *
+from PDF_functions.Image_to_PDF import image_to_pdf
 from flask_sqlalchemy import SQLAlchemy
 '''
 Lets make stright functionality before visual
@@ -56,6 +57,27 @@ def merge():
         return f'Uploaded {file.filename}'
     
     return render_template('merge_pdf.html')
+
+@app.route('/image-to-pdf', methods=['GET', 'POST'])
+def IMG_to_PDF():
+    if request.method == 'POST':
+        file = request.files['file']
+        
+        # Convert inputed file into a pdf
+
+        image_to_pdf(file)
+        # Uploading the data onto the database
+        '''upload = Upload(filename=file.filename, data = file.read())
+        db.session.add(upload)
+        db.session.commit()
+        pdf_id = upload.id
+        print(pdf_id)'''
+
+        # image to pdf
+
+        return f'Uploaded {file.filename}'
+    
+    return render_template('img_to_pdf.html')
 
 # TODO: Make a redirect to a new page for downloading data -> Save altered pdf_id into the session as to redirect to download
 @app.route('/download/<upload_id>')
