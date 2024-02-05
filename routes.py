@@ -2,8 +2,9 @@ from io import BytesIO # Allows us to take the binary from the db and convert to
 
 from flask import Flask, render_template, redirect, url_for, request, send_file
 from PDF_functions import *
-from PDF_functions.Image_to_PDF import image_to_pdf
+from PDF_functions.Image_to_PDF import image_to_pdf, convert_image_to_pdf
 from flask_sqlalchemy import SQLAlchemy
+from reportlab.pdfgen import canvas
 '''
 Lets make stright functionality before visual
 '''
@@ -12,6 +13,7 @@ app.config['SECRET_KEY'] = 'This is the key baby!'
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite3'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False 
+
 db = SQLAlchemy(app)
 
 # Columns: id, filename, data
@@ -19,10 +21,21 @@ db = SQLAlchemy(app)
 Current Implementation: Storing the data diretly to the db, may not perform so well
 Future implementation: Store this on a file system or S3, and store metadata on the db
 '''
-class Upload(db.Model):
+
+# One to many relationship
+class Parent(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     filename = db.Column(db.String(50))
     data = db.Column(db.LargeBinary) # Store arbitrary binary
+    # A pdf can have 1 or many modfied files 
+    posts = db.relationship('Child', backref='parent', lazy=True)
+
+class Child(db.Model): # Will hold modified PDF for downloading, composit key
+    id = db.Column(db.Integer, primary_key=True)
+    data = db.Column(db.LargeBinary) # Store arbitrary binary
+    user_id = db.Column(db.Integer, db.ForeignKey('parent.id'), nullable=False) # Looks to backref (parent) and checks the id
+
+# Relational DB, primary: pdf#, fori
 
 
 @app.route("/", methods=['GET', 'POST'])
@@ -36,7 +49,7 @@ def new_page():
         file = request.files['file']
         
         # Uploading the data onto the database
-        upload = Upload(filename=file.filename, data = file.read())
+        upload = Parent(filename=file.filename, data = file.read())
         db.session.add(upload)
         db.session.commit()
 
@@ -50,7 +63,7 @@ def merge():
         file = request.files['file']
         
         # Uploading the data onto the database
-        upload = Upload(filename=file.filename, data = file.read())
+        upload = Parent(filename=file.filename, data = file.read())
         db.session.add(upload)
         db.session.commit()
 
@@ -63,27 +76,40 @@ def IMG_to_PDF():
     if request.method == 'POST':
         file = request.files['file']
         
-        # Convert inputed file into a pdf
-
-        image_to_pdf(file)
         # Uploading the data onto the database
-        '''upload = Upload(filename=file.filename, data = file.read())
+        upload = Parent(filename=file.filename, data = file.read())
         db.session.add(upload)
         db.session.commit()
+
         pdf_id = upload.id
-        print(pdf_id)'''
+        print(pdf_id)
+        pdf_data = convert_image_to_pdf(upload.data)
+        print('HELP')
 
-        # image to pdf
-
-        return f'Uploaded {file.filename}'
+        # Pass the bytes of the PDF data to the Child model
+        modupload = Child(data=pdf_data.read(), user_id=pdf_id)
+        db.session.add(modupload)
+        db.session.commit()
     
     return render_template('img_to_pdf.html')
 
 # TODO: Make a redirect to a new page for downloading data -> Save altered pdf_id into the session as to redirect to download
 @app.route('/download/<upload_id>')
 def download(upload_id):
-    upload = Upload.query.filter_by(id=upload_id).first()
+    upload = Parent.query.filter_by(id=upload_id).first()
     return send_file(BytesIO(upload.data), download_name=upload.filename, as_attachment=True)
+
+@app.route('/download_child/<upload_id>')
+def download1(upload_id):
+    upload = Child.query.filter_by(id=upload_id).first()
+
+    if not upload:
+        return "File not found"
+
+    # Convert upload.id to a string for download_name
+    download_name = str(upload.id)
+
+    return send_file(BytesIO(upload.data), download_name=f'{download_name}.pdf', as_attachment=True)
 
 if __name__ == '__main__':
     # Create the database tables

@@ -1,6 +1,7 @@
 import os
 from PIL import Image
-
+from io import BytesIO
+from reportlab.pdfgen import canvas
 
 def image_to_pdf(image):
     '''
@@ -26,3 +27,25 @@ def image_to_pdf(image):
     joined_PDFfile_path1 = os.path.join(pdf_folder_path, f'{i}.pdf')
     im_1.save(joined_PDFfile_path1)
     '''
+
+def convert_image_to_pdf(image_file):
+    image_file = BytesIO(image_file)
+    # Open the image using Pillow
+    img = Image.open(image_file)
+
+    # Create a BytesIO buffer to save the PDF
+    pdf_buffer = BytesIO()
+
+    # Create a PDF document
+    pdf = canvas.Canvas(pdf_buffer, pagesize=img.size)
+
+    # Draw the image on the PDF
+    pdf.drawInlineImage(img, 0, 0, width=img.width, height=img.height)
+
+    # Save the PDF to the buffer
+    pdf.save()
+
+    # Reset the buffer position to the beginning
+    pdf_buffer.seek(0)
+
+    return pdf_buffer
