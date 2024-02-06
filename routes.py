@@ -37,6 +37,10 @@ class Child(db.Model): # Will hold modified PDF for downloading, composit key
 
 # Relational DB, primary: pdf#, fori
 
+def upload_data(data):
+    db.session.add(data)
+    db.session.commit()
+    return
 
 @app.route("/", methods=['GET', 'POST'])
 @app.route("/home", methods=['GET', 'POST'])
@@ -78,18 +82,16 @@ def IMG_to_PDF():
         
         # Uploading the data onto the database
         upload = Parent(filename=file.filename, data = file.read())
-        db.session.add(upload)
-        db.session.commit()
+        upload_data(upload)
 
         pdf_id = upload.id
-        print(pdf_id)
         pdf_data = convert_image_to_pdf(upload.data)
-        print('HELP')
 
         # Pass the bytes of the PDF data to the Child model
         modupload = Child(data=pdf_data.read(), user_id=pdf_id)
-        db.session.add(modupload)
-        db.session.commit()
+        upload_data(modupload)
+
+        return redirect(url_for('download_child', upload_id=modupload.id))
     
     return render_template('img_to_pdf.html')
 
@@ -100,7 +102,7 @@ def download(upload_id):
     return send_file(BytesIO(upload.data), download_name=upload.filename, as_attachment=True)
 
 @app.route('/download_child/<upload_id>')
-def download1(upload_id):
+def download_child(upload_id):
     upload = Child.query.filter_by(id=upload_id).first()
 
     if not upload:
