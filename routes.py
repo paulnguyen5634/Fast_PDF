@@ -20,6 +20,8 @@ db = SQLAlchemy(app)
 '''
 Current Implementation: Storing the data diretly to the db, may not perform so well
 Future implementation: Store this on a file system or S3, and store metadata on the db
+
+ToDo: Add another database to store loggedin users, track their pdf attachments, 1 to many relationship
 '''
 
 # One to many relationship
@@ -68,8 +70,7 @@ def merge():
         
         # Uploading the data onto the database
         upload = Parent(filename=file.filename, data = file.read())
-        db.session.add(upload)
-        db.session.commit()
+        upload_data(upload)
 
         return f'Uploaded {file.filename}'
     
@@ -112,6 +113,10 @@ def download_child(upload_id):
     download_name = str(upload.id)
 
     return send_file(BytesIO(upload.data), download_name=f'{download_name}.pdf', as_attachment=True)
+
+@app.route('/downloads')
+def downloadsPage():
+    return render_template('download.html')
 
 if __name__ == '__main__':
     # Create the database tables
