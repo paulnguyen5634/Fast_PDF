@@ -1,10 +1,11 @@
 from io import BytesIO # Allows us to take the binary from the db and convert to a format that flask can use to regen data
 
-from flask import Flask, render_template, redirect, url_for, request, send_file
+from flask import Flask, render_template, redirect, url_for, request, send_file, session, flash
 from PDF_functions import *
 from PDF_functions.Image_to_PDF import image_to_pdf, convert_image_to_pdf
 from flask_sqlalchemy import SQLAlchemy
 from reportlab.pdfgen import canvas
+from datetime import timedelta
 '''
 Lets make stright functionality before visual
 '''
@@ -13,6 +14,7 @@ app.config['SECRET_KEY'] = 'This is the key baby!'
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite3'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False 
+app.permanent_session_lifetime = timedelta(minutes=5) 
 
 db = SQLAlchemy(app)
 
@@ -25,10 +27,19 @@ ToDo: Add another database to store loggedin users, track their pdf attachments,
 '''
 
 # One to many relationship
+# One to many relationship
+class users(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(50))
+    password = db.Column(db.String(50)) # String or soemthing similar, make sure to hash this for security reasons and add SALT (Boi's got salt)
+    # A pdf can have 1 or many modfied files 
+    posts = db.relationship('Parent', backref='user', lazy=True) #The relational connection from one db to another
+
 class Parent(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     filename = db.Column(db.String(50))
-    data = db.Column(db.LargeBinary) # Store arbitrary binary
+    data = db.Column(db.LargeBinary) 
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     # A pdf can have 1 or many modfied files 
     posts = db.relationship('Child', backref='parent', lazy=True)
 
@@ -117,6 +128,19 @@ def download_child(upload_id):
 @app.route('/downloads')
 def downloadsPage():
     return render_template('download.html')
+
+@app.route('/login', methods=['GET', 'POST'])
+def user_login():
+
+    if request.method == "POST":
+        username = request.form["username"] 
+        password = request.form["password"]
+        print(username)
+        print(password)
+        return render_template('index_coffee.html')
+        
+
+    return render_template('login.html')
 
 if __name__ == '__main__':
     # Create the database tables
