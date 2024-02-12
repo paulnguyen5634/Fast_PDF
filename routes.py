@@ -39,7 +39,7 @@ class Parent(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     filename = db.Column(db.String(50))
     data = db.Column(db.LargeBinary) 
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     # A pdf can have 1 or many modfied files 
     posts = db.relationship('Child', backref='parent', lazy=True)
 
@@ -132,15 +132,26 @@ def downloadsPage():
 @app.route('/login', methods=['GET', 'POST'])
 def user_login():
 
+    # Submit should be GET, create should be POST
     if request.method == "POST":
         username = request.form["username"] 
         password = request.form["password"]
         print(username)
         print(password)
-        return render_template('index_coffee.html')
+        session['username'] = username
+        upload = users(username=username, password=password)
+        upload_data(upload)
+        #return render_template('index_coffee.html')
+        return redirect(url_for('home'))
         
 
     return render_template('login.html')
+
+
+@app.route('/login_signup', methods=['GET', 'POST'])
+def user_login_sliding():
+
+    return render_template('login_signup.html')
 
 if __name__ == '__main__':
     # Create the database tables

@@ -11,7 +11,11 @@
             <div class="header">
                 <p class="logo">Fast PDF</p>
                 <div class="links">
-                    <a href="login">Sign In</a>
+                    {% if 'username' in session %}
+                        <p>Welcome, {{ session['username'] }}!</p>
+                    {% else %}
+                        <a href="login">Sign In</a>
+                    {% endif %}
                 </div>
             </div>
             <div class="first">

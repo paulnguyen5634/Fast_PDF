@@ -70,10 +70,10 @@ background-color: #ac7853;
 .placeholder p{
     margin:90px 0 0 0;
 }
-.links a{
+.links a,p{
 text-decoration: none;
 font-size: 18px;
-color:#E5E7EB;
+color:#F9FAF8;
 }
 
 .first-container{
@@ -81,7 +81,9 @@ color:#E5E7EB;
     width:470px;
 }
 .header{
-    gap:1000px;
+    gap:950px;
+    border-radius: 12px;
+    border: 3px;
 }
 .first{
     gap:100px;
