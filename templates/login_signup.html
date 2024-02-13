@@ -12,54 +12,37 @@
 
 <body>
 	<header>
-		<h1 class="heading">GeeksforGeeks</h1>
-		<h3 class="title">Sliding Login & Registration Form</h3>
+		<h1 class="heading">Fast PDF</h1>
+		<h3 class="title">Login & Registration Form</h3>
 	</header>
 
 	<!-- container div -->
 	<div class="container">
-
-		<!-- upper button section to select
-			the login or signup form -->
-		<div class="slider"></div>
-		<div class="btn">
-			<button class="login">Login</button>
-			<button class="signup">Signup</button>
-		</div>
-
-		<!-- Form section that contains the
-			login and the signup form -->
-		<div class="form-section">
-
-			<!-- login form -->
-			<div class="login-box">
-				<input type="email"
-					class="email ele"
-					placeholder="youremail@email.com">
-				<input type="password"
-					class="password ele"
-					placeholder="password">
-				<button class="clkbtn">Login</button>
-			</div>
-
-			<!-- signup form -->
-			<div class="signup-box">
-				<input type="text"
-					class="name ele"
-					placeholder="Enter your name">
-				<input type="email"
-					class="email ele"
-					placeholder="youremail@email.com">
-				<input type="password"
-					class="password ele"
-					placeholder="password">
-				<input type="password"
-					class="password ele"
-					placeholder="Confirm password">
-				<button class="clkbtn">Signup</button>
-			</div>
-		</div>
-	</div>
+        <div class="slider"></div>
+        <div class="btn">
+            <button class="login">Login</button>
+            <button class="signup">Signup</button>
+        </div>
+        <div class="form-section">
+            <form action="/authenticate" method="post" class="login-box">
+                <input type="username" name="username" class="password ele" placeholder="username">
+                <input type="password" name="password" class="password ele" placeholder="password">
+                <button type="submit" class="clkbtn">Login</button>
+                {% if error %}
+                    <p class="error">{{ error }}</p>
+                {% endif %}
+            </form>
+    
+            <form action="/login" method="post" class="signup-box">
+                <input type="text" name="name" class="name ele" placeholder="Enter your name">
+                <input type="email" name="email" class="email ele" placeholder="youremail@email.com">
+                <input type="username" name="username" class="password ele" placeholder="username">
+                <input type="password" name="password" class="password ele" placeholder="password">
+                <input type="password" class="password ele" placeholder="Confirm password">
+                <button type="submit" class="clkbtn">Signup</button>
+            </form>
+        </div>
+    </div>
 	<script src="{{ url_for('static', filename='js/login_signup.js') }}"></script>
 </body>
 </html>

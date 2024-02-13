@@ -30,7 +30,9 @@ ToDo: Add another database to store loggedin users, track their pdf attachments,
 # One to many relationship
 class users(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(50))
+    username = db.Column(db.String(50), unique=True)
+    email = db.Column(db.String(50))
+    name = db.Column(db.String(50))
     password = db.Column(db.String(50)) # String or soemthing similar, make sure to hash this for security reasons and add SALT (Boi's got salt)
     # A pdf can have 1 or many modfied files 
     posts = db.relationship('Parent', backref='user', lazy=True) #The relational connection from one db to another
@@ -58,7 +60,7 @@ def upload_data(data):
 @app.route("/", methods=['GET', 'POST'])
 @app.route("/home", methods=['GET', 'POST'])
 def home():
-    return render_template('index_coffee.html')
+    return render_template('homepage.html')
 
 @app.route('/upload', methods=['GET', 'POST'])
 def new_page():
@@ -131,27 +133,44 @@ def downloadsPage():
 
 @app.route('/login', methods=['GET', 'POST'])
 def user_login():
+    
 
     # Submit should be GET, create should be POST
     if request.method == "POST":
         username = request.form["username"] 
         password = request.form["password"]
+        email = request.form["email"]
+        name = request.form["name"]
         print(username)
         print(password)
         session['username'] = username
-        upload = users(username=username, password=password)
+        upload = users(name=name, username=username, password=password, email=email)
         upload_data(upload)
         #return render_template('index_coffee.html')
         return redirect(url_for('home'))
-        
-
-    return render_template('login.html')
-
-
-@app.route('/login_signup', methods=['GET', 'POST'])
-def user_login_sliding():
-
+    
     return render_template('login_signup.html')
+
+@app.route('/authenticate', methods=['POST'])
+def authenticate_user():
+    error = None
+    username = request.form.get('username')
+    password = request.form.get('password')
+    print(username)
+    print(password)
+    
+    # Check if passwords and username exists
+    upload = users.query.filter_by(username=username).first()
+    if upload:
+    # User with the specified username exists
+    # Perform further actions
+        if upload.password == password:
+            session['username'] = username
+    else:
+        # User with the specified username doesn't exist
+        # Handle this case accordingly
+        error = "Invalid username or password"
+        return render_template('login_signup.html', error=error)
 
 if __name__ == '__main__':
     # Create the database tables
