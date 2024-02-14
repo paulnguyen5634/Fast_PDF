@@ -24,12 +24,12 @@
             <button class="signup">Signup</button>
         </div>
         <div class="form-section">
-            <form action="/authenticate" method="post" class="login-box">
+            <form action="/login" method="post" class="login-box">
                 <input type="username" name="username" class="password ele" placeholder="username" required>
                 <input type="password" name="password" class="password ele" placeholder="password" required>
                 <button type="submit" name = "login" class="clkbtn">Login</button>
-                {% if error %}
-                    <p class="error" style="color: red;">{{ error }}</p>
+                {% if error  %}
+                    <p class="error" style="color: red;">{{ error  }}</p>
                 {% endif %}
             </form>
     
@@ -38,8 +38,11 @@
                 <input type="email" name="email" class="email ele" placeholder="youremail@email.com" required>
                 <input type="username" name="username" class="password ele" placeholder="username" required>
                 <input type="password" name="password" class="password ele" placeholder="password" required>
-                <input type="password" class="password ele" placeholder="Confirm password" required>
+                <input type="password" name="confirm_password" class="password ele" placeholder="Confirm password" required>
                 <button type="submit" name = "signup" class="clkbtn">Signup</button>
+                {% if nonmatch %}
+                    <p class="nonmatch" style="color: red;">{{ nonmatch }}</p>
+                {% endif %}
             </form>
         </div>
     </div>

@@ -134,17 +134,43 @@ def downloadsPage():
 @app.route('/login', methods=['GET', 'POST'])
 def user_login():
     # Submit should be GET, create should be POST
-    if request.method == "POST":
+    if 'signup' in request.form:
+        nonmatch = None
         username = request.form["username"] 
         password = request.form["password"]
         email = request.form["email"]
         name = request.form["name"]
+        confirm_password = request.form["confirm_password"]
+        if confirm_password != password:
+            nonmatch  = "Passwords do not match"
+            return render_template('login_signup.html', nonmatch=nonmatch)
         print(username)
         print(password)
         session['username'] = username
         upload = users(name=name, username=username, password=password, email=email)
         upload_data(upload)
         return redirect(url_for('home'))
+    elif 'login' in request.form:
+        error = None
+        username = request.form.get('username')
+        password = request.form.get('password')
+        print(username)
+        print(password)
+        # Check if passwords and username exists
+        upload = users.query.filter_by(username=username).first()
+        if upload:
+        # User with the specified username exists
+        # Perform further actions
+            if upload.password == password:
+                session['username'] = username
+            else:
+                error = "Invalid username or password"
+                return render_template('login_signup.html', error=error)
+        else:
+            # User with the specified username doesn't exist
+            # Handle this case accordingly
+            error = "Invalid username or password"
+            return render_template('login_signup.html', error=error)
     
     return render_template('login_signup.html')
 
