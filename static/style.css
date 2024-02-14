@@ -22,7 +22,8 @@ body,
 }
 .image-subtext p{
     width:180px;
-    text-align: center;   
+    text-align: center;
+    color: black;   
 }
 
 .images-first{
@@ -73,7 +74,7 @@ background-color: #ac7853;
 .links a,p{
 text-decoration: none;
 font-size: 18px;
-color:#F9FAF8;
+color:white;
 }
 
 .first-container{

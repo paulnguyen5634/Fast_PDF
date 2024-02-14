@@ -133,8 +133,6 @@ def downloadsPage():
 
 @app.route('/login', methods=['GET', 'POST'])
 def user_login():
-    
-
     # Submit should be GET, create should be POST
     if request.method == "POST":
         username = request.form["username"] 
@@ -146,11 +144,11 @@ def user_login():
         session['username'] = username
         upload = users(name=name, username=username, password=password, email=email)
         upload_data(upload)
-        #return render_template('index_coffee.html')
         return redirect(url_for('home'))
     
     return render_template('login_signup.html')
 
+# Recombine this with user_login section, but with different post request naming variables
 @app.route('/authenticate', methods=['POST'])
 def authenticate_user():
     error = None

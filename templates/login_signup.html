@@ -25,21 +25,21 @@
         </div>
         <div class="form-section">
             <form action="/authenticate" method="post" class="login-box">
-                <input type="username" name="username" class="password ele" placeholder="username">
-                <input type="password" name="password" class="password ele" placeholder="password">
-                <button type="submit" class="clkbtn">Login</button>
+                <input type="username" name="username" class="password ele" placeholder="username" required>
+                <input type="password" name="password" class="password ele" placeholder="password" required>
+                <button type="submit" name = "login" class="clkbtn">Login</button>
                 {% if error %}
-                    <p class="error">{{ error }}</p>
+                    <p class="error" style="color: red;">{{ error }}</p>
                 {% endif %}
             </form>
     
             <form action="/login" method="post" class="signup-box">
-                <input type="text" name="name" class="name ele" placeholder="Enter your name">
-                <input type="email" name="email" class="email ele" placeholder="youremail@email.com">
-                <input type="username" name="username" class="password ele" placeholder="username">
-                <input type="password" name="password" class="password ele" placeholder="password">
-                <input type="password" class="password ele" placeholder="Confirm password">
-                <button type="submit" class="clkbtn">Signup</button>
+                <input type="text" name="name" class="name ele" placeholder="Enter your name" required>
+                <input type="email" name="email" class="email ele" placeholder="youremail@email.com" required>
+                <input type="username" name="username" class="password ele" placeholder="username" required>
+                <input type="password" name="password" class="password ele" placeholder="password" required>
+                <input type="password" class="password ele" placeholder="Confirm password" required>
+                <button type="submit" name = "signup" class="clkbtn">Signup</button>
             </form>
         </div>
     </div>
