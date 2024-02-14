@@ -133,7 +133,7 @@ def downloadsPage():
 
 @app.route('/login', methods=['GET', 'POST'])
 def user_login():
-    # Submit should be GET, create should be POST
+    # Find some way how to improve speed 
     if 'signup' in request.form:
         nonmatch = None
         username = request.form["username"] 
