@@ -48,7 +48,7 @@ class Parent(db.Model):
 class Child(db.Model): # Will hold modified PDF for downloading, composit key
     id = db.Column(db.Integer, primary_key=True)
     data = db.Column(db.LargeBinary) # Store arbitrary binary
-    user_id = db.Column(db.Integer, db.ForeignKey('parent.id'), nullable=False) # Looks to backref (parent) and checks the id
+    input_id = db.Column(db.Integer, db.ForeignKey('parent.id'), nullable=False) # Looks to backref (parent) and checks the id
 
 # Relational DB, primary: pdf#, fori
 
@@ -97,16 +97,15 @@ def IMG_to_PDF():
         upload = Parent(filename=file.filename, data = file.read(), user_id = session['user_ID'])
         upload_data(upload)
 
-        pdf_id = upload.id
         pdf_data = convert_image_to_pdf(upload.data)
 
         # Pass the bytes of the PDF data to the Child model
-        modupload = Child(data=pdf_data.read(), user_id=pdf_id)
+        modupload = Child(data=pdf_data, input_id=upload.id)
         upload_data(modupload)
 
         return redirect(url_for('download_child', upload_id=modupload.id))
     
-    return render_template('file_upload.html')
+    return render_template('file_upload.html', function='Image to PDF', endpoint='image-to-pdf')
 
 # TODO: Make a redirect to a new page for downloading data -> Save altered pdf_id into the session as to redirect to download
 @app.route('/download/<upload_id>')

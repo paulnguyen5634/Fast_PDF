@@ -9,7 +9,7 @@
 <body>
     <div class="wrapper">
         <div class="container">
-            <h1>Upload a file</h1>
+            <h1>{{function}}</h1>
             <div class="upload-container">
                 <div class="border-container" id="drop-area">
                     <div class="icons">
@@ -17,7 +17,7 @@
                             <img src="{{ url_for('static', filename='images/upload_img.png') }}" alt="Image of file">
                         </label> 
                     </div>
-                    <form action="your_upload_endpoint" method="post" enctype="multipart/form-data" id="upload-form">
+                    <form action={{endpoint}} method="post" enctype="multipart/form-data" id="upload-form">
                         <input type="file" id="file-upload" name="file" style="display:none;" multiple>
                         <p class="drag-drop" id="drag-text">Click the image above, or <label for="file-upload" id="file-browser">here </label>to upload from your computer.</p>
                         <div id="file-list" class="file-list"></div>
