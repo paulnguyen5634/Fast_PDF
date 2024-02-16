@@ -14,7 +14,7 @@ app.config['SECRET_KEY'] = 'This is the key baby!'
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite3'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False 
-app.permanent_session_lifetime = timedelta(minutes=5) 
+app.permanent_session_lifetime = timedelta(minutes=60) # Save user session for 1 hour
 
 db = SQLAlchemy(app)
 
@@ -55,7 +55,7 @@ class Child(db.Model): # Will hold modified PDF for downloading, composit key
 def upload_data(data):
     db.session.add(data)
     db.session.commit()
-    return
+    return data.id
 
 @app.route("/", methods=['GET', 'POST'])
 @app.route("/home", methods=['GET', 'POST'])
@@ -92,10 +92,9 @@ def merge():
 @app.route('/image-to-pdf', methods=['GET', 'POST'])
 def IMG_to_PDF():
     if request.method == 'POST':
-        file = request.files['file']
-        
+        file = request.files['file'] # Uploading file
         # Uploading the data onto the database
-        upload = Parent(filename=file.filename, data = file.read())
+        upload = Parent(filename=file.filename, data = file.read(), user_id = session['user_ID'])
         upload_data(upload)
 
         pdf_id = upload.id
@@ -107,7 +106,7 @@ def IMG_to_PDF():
 
         return redirect(url_for('download_child', upload_id=modupload.id))
     
-    return render_template('img_to_pdf.html')
+    return render_template('file_upload.html')
 
 # TODO: Make a redirect to a new page for downloading data -> Save altered pdf_id into the session as to redirect to download
 @app.route('/download/<upload_id>')
@@ -117,7 +116,7 @@ def download(upload_id):
 
 @app.route('/download_child/<upload_id>')
 def download_child(upload_id):
-    upload = Child.query.filter_by(id=upload_id).first()
+    upload = Child.query.filter_by(id=upload_id).first() # Change this to dowload all occurances of parent id
 
     if not upload:
         return "File not found"
@@ -144,21 +143,24 @@ def user_login():
         if confirm_password != password:
             nonmatch  = "Passwords do not match"
             return render_template('login_signup.html', nonmatch=nonmatch)
-        print(username)
-        print(password)
+        
         session['username'] = username
+        
         upload = users(name=name, username=username, password=password, email=email)
-        upload_data(upload)
+        session['user_ID'] = upload_data(upload)
+        print(session['user_ID'])
+
+        # Find the user ID
+
         return redirect(url_for('home'))
     elif 'login' in request.form:
         error = None
         username = request.form.get('username')
         password = request.form.get('password')
-        print(username)
-        print(password)
+
         # Check if passwords and username exists
         upload = users.query.filter_by(username=username).first()
-        if upload:
+        if upload: # Username matches
         # User with the specified username exists
         # Perform further actions
             if upload.password == password:
@@ -168,8 +170,7 @@ def user_login():
                 return render_template('login_signup.html', error=error)
         else:
             # User with the specified username doesn't exist
-            # Handle this case accordingly
-            error = "Invalid username or password"
+            error = "Username Does Not Exist"
             return render_template('login_signup.html', error=error)
     
     return render_template('login_signup.html')

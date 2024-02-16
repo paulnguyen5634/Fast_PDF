@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='upload_style.css') }}">
+</head>
+<body>
+    <div class="wrapper">
+        <div class="container">
+            <h1>Upload a file</h1>
+            <div class="upload-container">
+                <div class="border-container" id="drop-area">
+                    <div class="icons">
+                        <label for="file-upload">
+                            <img src="{{ url_for('static', filename='images/upload_img.png') }}" alt="Image of file">
+                        </label> 
+                    </div>
+                    <form action="your_upload_endpoint" method="post" enctype="multipart/form-data" id="upload-form">
+                        <input type="file" id="file-upload" name="file" style="display:none;" multiple>
+                        <p class="drag-drop" id="drag-text">Click the image above, or <label for="file-upload" id="file-browser">here </label>to upload from your computer.</p>
+                        <div id="file-list" class="file-list"></div>
+                        <input type="submit" value="Upload">
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="{{ url_for('static', filename='js/upload.js') }}"></script>
+    <script>
+        const fileList = document.getElementById('file-list');
+
+        document.getElementById('file-upload').addEventListener('change', function() {
+            const files = this.files;
+            for (let i = 0; i < files.length; i++) {
+                const fileName = files[i].name;
+                const listItem = document.createElement('div');
+
+                const removeButtonContainer = document.createElement('span');
+                removeButtonContainer.className = 'remove-file-container';
+
+                const removeButton = document.createElement('span');
+                removeButton.textContent = 'x';
+                removeButton.className = 'remove-file';
+                removeButton.addEventListener('click', function() {
+                    fileList.removeChild(listItem);
+                });
+
+                removeButtonContainer.appendChild(removeButton);
+
+                listItem.textContent = fileName;
+                listItem.appendChild(removeButtonContainer);
+
+                fileList.appendChild(listItem);
+            }
+        });
+    </script>
+</body>
+</html>
