@@ -1,6 +1,6 @@
 from io import BytesIO # Allows us to take the binary from the db and convert to a format that flask can use to regen data
 
-from flask import Flask, render_template, redirect, url_for, request, send_file, session, flash
+from flask import Flask, render_template, redirect, url_for, request, send_file, session, flash, make_response
 from PDF_functions import *
 from PDF_functions.Image_to_PDF import image_to_pdf, convert_image_to_pdf
 from flask_sqlalchemy import SQLAlchemy
@@ -14,7 +14,7 @@ app.config['SECRET_KEY'] = 'This is the key baby!'
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite3'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False 
-app.permanent_session_lifetime = timedelta(minutes=60) # Save user session for 1 hour
+app.permanent_session_lifetime = timedelta(minutes=5) # Save user session for 1 hour
 
 db = SQLAlchemy(app)
 
@@ -26,7 +26,6 @@ Future implementation: Store this on a file system or S3, and store metadata on 
 ToDo: Add another database to store loggedin users, track their pdf attachments, 1 to many relationship
 '''
 
-# One to many relationship
 # One to many relationship
 class users(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -60,6 +59,8 @@ def upload_data(data):
 @app.route("/", methods=['GET', 'POST'])
 @app.route("/home", methods=['GET', 'POST'])
 def home():
+    resp = make_response("Setting cookie")
+    resp.set_cookie('my_cookie', 'cookie_value', max_age=0)  # Expires when browser is closed
     return render_template('homepage.html')
 
 @app.route('/upload', methods=['GET', 'POST'])
@@ -98,9 +99,10 @@ def IMG_to_PDF():
         upload_data(upload)
 
         pdf_data = convert_image_to_pdf(upload.data)
+        pdf_bytes = pdf_data.getvalue()
 
         # Pass the bytes of the PDF data to the Child model
-        modupload = Child(data=pdf_data, input_id=upload.id)
+        modupload = Child(data=pdf_bytes, input_id=upload.id)
         upload_data(modupload)
 
         return redirect(url_for('download_child', upload_id=modupload.id))
@@ -164,6 +166,8 @@ def user_login():
         # Perform further actions
             if upload.password == password:
                 session['username'] = username
+                session['user_ID'] = upload_data(upload)
+                return render_template('homepage.html')
             else:
                 error = "Invalid username or password"
                 return render_template('login_signup.html', error=error)
@@ -173,28 +177,6 @@ def user_login():
             return render_template('login_signup.html', error=error)
     
     return render_template('login_signup.html')
-
-# Recombine this with user_login section, but with different post request naming variables
-@app.route('/authenticate', methods=['POST'])
-def authenticate_user():
-    error = None
-    username = request.form.get('username')
-    password = request.form.get('password')
-    print(username)
-    print(password)
-    
-    # Check if passwords and username exists
-    upload = users.query.filter_by(username=username).first()
-    if upload:
-    # User with the specified username exists
-    # Perform further actions
-        if upload.password == password:
-            session['username'] = username
-    else:
-        # User with the specified username doesn't exist
-        # Handle this case accordingly
-        error = "Invalid username or password"
-        return render_template('login_signup.html', error=error)
 
 if __name__ == '__main__':
     # Create the database tables
