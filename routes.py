@@ -6,6 +6,8 @@ from PDF_functions.Image_to_PDF import image_to_pdf, convert_image_to_pdf
 from flask_sqlalchemy import SQLAlchemy
 from reportlab.pdfgen import canvas
 from datetime import timedelta
+import zipfile
+import ast
 '''
 Lets make stright functionality before visual
 '''
@@ -93,19 +95,29 @@ def merge():
 @app.route('/image-to-pdf', methods=['GET', 'POST'])
 def IMG_to_PDF():
     if request.method == 'POST':
-        file = request.files['file'] # Uploading file
-        # Uploading the data onto the database
-        upload = Parent(filename=file.filename, data = file.read(), user_id = session['user_ID'])
-        upload_data(upload)
 
-        pdf_data = convert_image_to_pdf(upload.data)
-        pdf_bytes = pdf_data.getvalue()
+        # Get the list of files uploaded
+        files = request.files.getlist('file')
+        
+        # Initialize a list to store the uploaded file IDs
+        uploaded_ids = []
+        for file in files:
+            # Uploading the data onto the database
+            upload = Parent(filename=file.filename, data=file.read(), user_id=session['user_ID'])
+            upload_data(upload)
 
-        # Pass the bytes of the PDF data to the Child model
-        modupload = Child(data=pdf_bytes, input_id=upload.id)
-        upload_data(modupload)
+            pdf_data = convert_image_to_pdf(upload.data)
+            pdf_bytes = pdf_data.getvalue()
 
-        return redirect(url_for('download_child', upload_id=modupload.id))
+            # Pass the bytes of the PDF data to the Child model
+            modupload = Child(data=pdf_bytes, input_id=upload.id)
+            upload_data(modupload)
+
+            # Append the uploaded file ID to the list
+            uploaded_ids.append(modupload.id)
+
+        # Redirect to the download endpoint with the list of uploaded file IDs
+        return redirect(url_for('download_child', upload_ids=uploaded_ids))
     
     return render_template('file_upload.html', function='Image to PDF', endpoint='image-to-pdf')
 
@@ -115,21 +127,22 @@ def download(upload_id):
     upload = Parent.query.filter_by(id=upload_id).first()
     return send_file(BytesIO(upload.data), download_name=upload.filename, as_attachment=True)
 
-@app.route('/download_child/<upload_id>')
-def download_child(upload_id):
-    upload = Child.query.filter_by(id=upload_id).first() # Change this to dowload all occurances of parent id
+@app.route('/download_child')
+def download_child():
+    # Get the list of uploaded file IDs from the query string
+    uploaded_ids = request.args.getlist('upload_ids')
 
-    if not upload:
-        return "File not found"
+    # Create a ZIP archive in memory
+    zip_buffer = BytesIO()
+    with zipfile.ZipFile(zip_buffer, 'w') as zip_file:
+        for upload_id in uploaded_ids:
+            upload = Child.query.filter_by(id=upload_id).first()
+            if upload:
+                zip_file.writestr(f'{upload_id}.pdf', upload.data)
 
-    # Convert upload.id to a string for download_name
-    download_name = str(upload.id)
-
-    return send_file(BytesIO(upload.data), download_name=f'{download_name}.pdf', as_attachment=True)
-
-@app.route('/downloads')
-def downloadsPage():
-    return render_template('download.html')
+    # Return the ZIP archive as a file download
+    zip_buffer.seek(0)
+    return send_file(zip_buffer, mimetype='application/zip', as_attachment=True, download_name='converted_files.zip')
 
 @app.route('/login', methods=['GET', 'POST'])
 def user_login():
